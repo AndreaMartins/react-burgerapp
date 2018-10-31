@@ -5,6 +5,9 @@ import Button from '../../../components/UI/Button/Button';
 import Spinner from '../../../components/UI/Spinner/Spinner';
 import classes from './ContactData.css';
 import axios from '../../../axios-orders';
+// import Input from '../../../components/UI/Input/Input';
+import withErrorHandler from '../../../hoc/withErrorHandler/withErrorHandler';
+import * as actions from '../../../store/actions/index';
 
 class ContactData extends Component {
 
@@ -15,19 +18,18 @@ class ContactData extends Component {
       street: '',
       postalCode: ''
     },
-    loading:false
 
   }
 
   orderHandler = (event) => {
         event.preventDefault();
-        console.log(this.props.ingredients);
 
         alert('You continue!');
         this.setState( { loading: true } );
         const order = {
             ingredients: this.props.ings,
             price: this.props.price,
+            // orderData: formData,
             customer: {
                 name: 'Max Schwarzmüller',
                 address: {
@@ -39,16 +41,8 @@ class ContactData extends Component {
             },
             deliveryMethod: 'fastest'
         }
-        axios.post( '/orders.json', order )
-            .then( response => {
-                this.setState( { loading: false, purchasing: false } );
-                this.props.history.push('/');
-            } )
-            .catch( error => {
-                this.setState( { loading: false, purchasing: false } );
-            } );
+        this.props.onOrderBurger(order);
   }
-
 
   render() {
     let form = (
@@ -75,8 +69,15 @@ class ContactData extends Component {
 const mapStateToProps = state => {
   return{
     ings: state.ingredients,
-    price:state.totalPrice
+    price:state.totalPrice,
+    loading: state.loading
   }
 }
 
-export default connect(mapStateToProps)(ContactData);
+const mapDispatchToProps = dispatch => {
+  return {
+    onOrderBurger:(orderData) => dispatch(actions.purchaseBurger(orderData))
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(withErrorHandler(ContactData, axios));
